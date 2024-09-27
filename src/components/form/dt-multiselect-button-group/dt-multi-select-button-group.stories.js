@@ -56,7 +56,8 @@ BasicGroup.args = {
       "Button 1": {
           "label": "Button 1",
           "description": "",
-          "icon": "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+          "icon": "https://cdn-icons-png.flaticon.com/512/1077/1077114.png",
+          "openModal" : true
       },
       "Button 2": {
           "label": "Button 2",

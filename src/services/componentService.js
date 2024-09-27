@@ -8,7 +8,7 @@ export default class ComponentService {
    * @param nonce - WordPress nonce for authentication
    * @param apiRoot - Root of API (default: wp-json) (i.e. the part before dt/v1/ or dt-posts/v2/)
   */
- constructor(postType, postId, nonce, apiRoot = 'wp-json') {
+ constructor(postType, postId, nonce, apiRoot = 'nextLit/wp-json') {
    this.postType = postType;
    this.postId = postId;
    this.nonce = nonce;
@@ -156,6 +156,45 @@ export default class ComponentService {
     }
   }
 
+  async handleCustomClickEvent(event) {
+    const details = event.detail;
+    if (details) {
+      const { field, toggleState } = details;
+      event.target.setAttribute('loading', true);
+      let apiValue;
+      switch (field) {
+        case 'favorite-button':
+          apiValue =  { favorite: toggleState }
+          break
+        case 'following-button':
+          case 'follow-button':
+          apiValue = {
+            follow: { values: [{ value: '1', delete: toggleState }] },
+            unfollow: { values: [{ value: '1', delete: !toggleState }] },
+          };
+          break;
+        default:
+          break;
+      }
+
+      // Update post via API
+      try {
+        console.log(this.postId, this.postType, apiValue);
+        const apiResponse = await this.api.updatePost(
+          this.postType,
+          this.postId,
+          apiValue
+        );
+        console.log('apiResponse', apiResponse);
+      } catch (error) {
+        console.error(error);
+        event.target.removeAttribute('loading');
+        event.target.setAttribute('invalid', true); // this isn't hooked up yet
+        event.target.setAttribute('error', error.message || error.toString());
+      }
+    }
+  }
+
   /**
    * Event listener for change events.
    * Will set loading property, attempt to save value via API,
@@ -166,17 +205,52 @@ export default class ComponentService {
   async handleChangeEvent(event) {
     const details = event.detail;
     if (details) {
-      const { field, newValue, oldValue} = details;
+      const { field, newValue, oldValue, toggleState } = details;
       const component = event.target.tagName.toLowerCase();
-      const apiValue = ComponentService.convertValue(component, newValue, oldValue);
-
+      let apiValue;
+      // const apiValue = ComponentService.convertValue(
+      //   component,
+      //   newValue,
+      //   oldValue,
+      //   toggleState
+      // );
       event.target.setAttribute('loading', true);
+
+      if(component === 'dt-button') {
+        switch(field) {
+          case 'favorite-button':
+            apiValue = { favorite: toggleState }
+            console.log('toggleState', toggleState);
+            console.log('apiValue', apiValue);
+
+            break
+          case 'following-button':
+            case 'follow-button':
+            apiValue = {
+              follow: { values: [{ value: '1', delete: toggleState }] },
+              unfollow: { values: [{ value: '1', delete: !toggleState }] },
+            };
+            break;
+          default:
+            break;
+        }
+      } else {
+        apiValue = ComponentService.convertValue(
+            component,
+            newValue,
+            oldValue,
+          );
+      }
 
       // Update post via API
       try {
-      const apiResponse= await this.api.updatePost(this.postType, this.postId, {
-          [field]: apiValue,
-        });
+        const apiResponse = await this.api.updatePost(
+          this.postType,
+          this.postId,
+          apiValue
+        );
+        console.log('API Response', apiResponse);
+        console.log('apiValue', apiValue);
 
         // Sending response to update value
         if(component==='dt-comm-channel' && details.onSuccess){

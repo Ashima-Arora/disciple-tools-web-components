@@ -7,6 +7,7 @@ const basicOptions = [
   {
     id: 'opt1',
     label: 'Option 1',
+    openModal: true,
   },
   {
     id: 'opt2',

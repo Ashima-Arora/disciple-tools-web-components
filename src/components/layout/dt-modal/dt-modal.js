@@ -150,10 +150,30 @@ export class DtModal extends DtBase {
         font-size: 0.75rem;
         display: block;
       }
-      .help-icon {
+      .opener .help-icon {
         -webkit-filter: invert(69%) sepia(1%) saturate(0) hue-rotate(239deg) brightness(94%) contrast(86%);
         filter: invert(69%) sepia(1%) saturate(0) hue-rotate(239deg) brightness(94%) contrast(86%);
         height: 15px;
+      }
+
+      .dt-modal--success:not(.dt-modal--outline) {
+        --dt-button-context-border-color: var(--success-color);
+        --dt-button-context-background-color: var(--success-color);
+        --dt-button-context-text-color: var(--dt-button-text-color-light);
+      }
+
+      .dt-modal--disabled:not(.dt-modal--outline) {
+        --dt-button-context-border-color: var(--disabled-color);
+        --dt-button-context-background-color: var(--disabled-color);
+        --dt-button-context-text-color: var(--dt-button-text-color-dark);
+      }
+      .dt-modal--success.dt-button--outline {
+        --dt-button-context-border-color: var(--success-color);
+        --dt-button-context-text-color: var(--success-color);
+      }
+
+      .dt-modal--disabled.dt-modal--outline {
+        --dt-button-context-border-color: var(--disabled-color);
       }
     `;
   }
@@ -182,10 +202,25 @@ export class DtModal extends DtBase {
     this.addEventListener('close', () => this._closeModal());
   }
 
-  _openModal() {
-    this.isOpen = true;
-    this.shadowRoot.querySelector('dialog').showModal();
+  get classes() {
+    const classes = {
+      'dt-modal': true,
+      'dt-modal--outline': this.outline,
+      'dt-modal--rounded': this.rounded,
+      'dt-modal--custom': this.custom,
+    };
+    const contextClass = `dt-modal--${this.context}`;
+    classes[contextClass] = true;
+    return classes;
+  }
 
+  _openModal() {
+    console.log('dtmodal dsnfsdf', this.buttonLabel)
+    this.isOpen = true;
+
+    this.shadowRoot.querySelector('dialog').showModal();
+    // console.log('value in dt-modal', this.shadowRoot.querySelector('dt-multiselect-buttons-group'))
+    // this.shadowRoot.querySelector('dt-multiselect-buttons-group').setAttribute('value', this.buttonLabel);
     document.querySelector('body').style.overflow = "hidden"
   }
 // to format title coming from backend
@@ -217,7 +252,7 @@ export class DtModal extends DtBase {
     this._triggerClose('cancel');
   }
 
-  _triggerClose(action) {
+   _triggerClose(action) {
     this.dispatchEvent(new CustomEvent('close', {
       detail: {
         action,
@@ -323,7 +358,7 @@ export class DtModal extends DtBase {
       ${!this.hideButton
       ? html`
       <button
-        class="button small opener ${classMap(this.buttonClass || {})}"
+        class="button small opener dt-modal--success ${classMap(this.buttonClass && this.classes|| {})}"
         data-open=""
         aria-label="Open reveal"
         type="button"
@@ -334,7 +369,6 @@ export class DtModal extends DtBase {
                ? html`<img
                    src="${this.imageSrc}"
                    alt="${this.buttonLabel} icon"
-                   class="help-icon"
                    style=${styleMap(this.imageStyle || {})}
                  />`
                : ''}
